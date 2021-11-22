@@ -1,0 +1,134 @@
+#!/usr/bin/bash
+
+function gauss() {
+
+mt=$1
+local IFS=$'\n'
+g=()
+pos=()
+i=0
+n=0
+
+for k in $(echo "$mt")
+do
+	n=$(($n+1))
+	
+	local IFS=,
+	for element in $(echo "$k")
+	do
+		g[$i]=$element
+		i=$(($i + 1))
+	done
+done
+
+
+for ((i = 0; i < $(($n + 1)); i++))
+do
+	pos[$i]=-1
+done
+
+m=$n
+m1=$(($n + 1))
+cl=0
+rw=0
+
+while [ $cl -lt $m ] && [ $rw -lt $n ]
+do
+	rw1=$rw
+	for ((i=$rw1; i < n; i++))
+	do
+		i1=$(($i * $m1))
+		abs1=${g[$i1 + $cl]}
+
+		i2=$(($rw1 * $m1))
+                abs2=${g[$i2 + $cl]}
+
+		if [ $(echo "$abs2 < 0" | bc) -eq 1 ];    
+                then
+                        abs2=`echo "$abs2 * -1 " | bc -l`
+                fi
+
+		
+		if [ $(echo "$abs1 < 0" | bc) -eq 1 ];     
+                then
+                        abs1=`echo "$abs1 * -1 " | bc -l` 
+                fi
+
+
+		if [ $(echo "$abs1 > $abs2" | bc) -eq 1 ];     
+		then
+        		rw1=$i 
+			#echo $rw1
+		fi
+		#echo -------------------------
+
+	done
+	
+	i1=$(($rw1 * $m1))
+	
+	abs=${g[$i1 + $cl]}
+
+	if [ $(echo "$abs < 0" | bc) -eq 1 ];     
+        then
+                abs=`echo "$abs * -1 " | bc -l`  
+        fi
+
+	abs=`echo "$abs * 100000000 " | bc -l` 
+
+	if [ $(echo "$abs < 1" | bc) -eq 1 ];
+	then
+		cl=$(($cl + 1))
+		continue
+	fi
+	for ((i=$cl; i <= m; i++))
+	do
+		i1=$(($rw1 * $m1))
+                	
+		i2=$(($rw * $m1))  
+
+		t=${g[$i1 + $i]}
+		g[$i1 + $i]=${g[$i2 + $i]}
+		g[$i2 + $i]=$t
+	done
+
+	pos[$cl]=$rw
+ 
+	for ((i=0; i < n; i++))
+	do
+		if [ "$i" != "$rw" ] 
+		then
+			i1=$(($i * $m1))
+			
+			i2=$(($rw * $m1))
+
+			c=`echo "${g[$i1 + $cl]} / ${g[$i2 + $cl]} " | bc -l`
+
+			for ((j=$cl; j <= m; j++))
+			do
+				i11=$(($i * $m1)) 
+                                i22=$(($rw * $m1))
+				#c=`echo "${g[$i1 + $cl]} / ${g[$i2 + $cl]} " | bc -l`
+				#rrrr=`echo "${g[$i2 + $j]} * ${g[$i1 + $cl]}" | bc -l`
+				t=`echo "$c * ${g[$i2 + $j]}" | bc -l`
+				g[$i1 + $j]=`echo "${g[$i1 + $j]} - $t" | bc -l`
+			done
+		fi
+	done
+	rw=$(($rw + 1))       
+	cl=$(($cl + 1))
+done
+
+for ((i = 0; i < m; i++))
+do
+	w=${pos[$i]}
+	w1=$(($w * $m1))
+	f=${g[$w1 + $m]}
+	s=${g[$w1 + $i]}
+	pi=`echo "$f/$s" | bc -l` 
+	echo $pi
+done
+}
+
+gg=$1
+cc=$(cat "$gg")
+echo "$(gauss "$cc")"
