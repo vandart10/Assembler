@@ -1,0 +1,70 @@
+        .text
+        .global main
+
+        .macro push Xn
+                sub sp, sp, 16
+                str \Xn, [sp]
+        .endm
+
+        .macro pop Xn
+                ldr \Xn, [sp]
+                add sp, sp, 16
+        .endm
+
+main:
+	push x30
+        
+	//x19 sz
+	//x20 cap
+	//x21 adr
+
+	mov x21, #0
+	mov x20, 1
+	mov x19, 0
+
+	mov x0, x21
+	mov x1, 1
+
+	reall:
+                add x20, x20, x20
+                mov x0, x21
+                mov x1, x20
+                bl realloc 
+                mov x21, x0
+
+
+	LoopBegin:
+	
+		bl getchar_unlocked
+	
+		cmp x0, -1
+		BEQ LoopEnd
+		
+		mov x2, x0
+
+		add x19, x19, 1
+
+		str x2, [x21, x19]
+
+		cmp x19, x20 
+                BEQ reall
+
+		b LoopBegin
+
+	LoopEnd:
+		cmp x19, 0
+		BEQ end
+
+		ldr x0, [x21, x19] 
+		bl putchar_unlocked
+		sub x19, x19, 1
+	
+		b LoopEnd
+
+
+	end:
+ 		mov x0, x21
+		bl free
+		pop x30
+        	mov x0, 0
+        	ret
